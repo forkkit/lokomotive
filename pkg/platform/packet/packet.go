@@ -77,6 +77,9 @@ type config struct {
 	ReservationIDsDefault    string            `hcl:"reservation_ids_default,optional"`
 	CertsValidityPeriodHours int               `hcl:"certs_validity_period_hours,optional"`
 	WorkerPools              []workerPool      `hcl:"worker_pool,block"`
+	TagsRaw                  string
+	ManagementCIDRsRaw       string
+	SSHPubKeysRaw            string
 }
 
 // init registers packet as a platform
@@ -188,21 +191,14 @@ func createTerraformConfigFile(cfg *config, terraformPath string) error {
 		return errors.Wrapf(err, "failed to marshal tags")
 	}
 
-	terraformCfg := struct {
-		Config          config
-		Tags            string
-		SSHPublicKeys   string
-		ManagementCIDRs string
-	}{
-		Config:          *cfg,
-		Tags:            string(tags),
-		SSHPublicKeys:   string(keyListBytes),
-		ManagementCIDRs: string(managementCIDRs),
-	}
+	cfg.TagsRaw = string(tags)
+	cfg.SSHPubKeysRaw = string(keyListBytes)
+	cfg.ManagementCIDRsRaw = string(managementCIDRs)
 
-	if err := t.Execute(f, terraformCfg); err != nil {
+	if err := t.Execute(f, cfg); err != nil {
 		return errors.Wrapf(err, "failed to write template to file: %q", path)
 	}
+
 	return nil
 }
 
