@@ -26,7 +26,7 @@ type Platform interface {
 	LoadConfig(*hcl.Body, *hcl.EvalContext) hcl.Diagnostics
 	Apply(*terraform.Executor) error
 	Destroy(*terraform.Executor) error
-	Initialize(*terraform.Executor) error
+	Initialize() error
 	GetAssetDir() string
 	GetExpectedNodes() int
 }
