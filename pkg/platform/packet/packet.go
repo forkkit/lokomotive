@@ -76,8 +76,7 @@ type config struct {
 	ReservationIDs           map[string]string `hcl:"reservation_ids,optional"`
 	ReservationIDsDefault    string            `hcl:"reservation_ids_default,optional"`
 	CertsValidityPeriodHours int               `hcl:"certs_validity_period_hours,optional"`
-
-	WorkerPools []workerPool `hcl:"worker_pool,block"`
+	WorkerPools              []workerPool      `hcl:"worker_pool,block"`
 }
 
 // init registers packet as a platform
