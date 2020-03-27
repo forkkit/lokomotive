@@ -49,9 +49,14 @@ type backend struct {
 	Config hcl.Body `hcl:",remain"`
 }
 
+type flatcar struct {
+	Config hcl.Body `hcl:",remain"`
+}
+
 type ClusterConfig struct {
 	Cluster    *cluster    `hcl:"cluster,block"`
 	Backend    *backend    `hcl:"backend,block"`
+	Flatcar    *flatcar    `hcl:"flatcar,block"`
 	Components []component `hcl:"component,block"`
 	Variables  []variable  `hcl:"variable,block"`
 }
