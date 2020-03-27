@@ -26,6 +26,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
+	"github.com/kinvolk/lokomotive/pkg/flatcar"
 	"github.com/kinvolk/lokomotive/pkg/platform"
 	"github.com/kinvolk/lokomotive/pkg/platform/util"
 	"github.com/kinvolk/lokomotive/pkg/terraform"
@@ -48,6 +49,7 @@ type workerPool struct {
 }
 
 type config struct {
+	Flatcar                  flatcar.Flatcar
 	AssetDir                 string            `hcl:"asset_dir"`
 	ClusterName              string            `hcl:"cluster_name"`
 	Tags                     map[string]string `hcl:"tags,optional"`
@@ -78,6 +80,10 @@ type config struct {
 	SSHPublicKeysRaw         string
 	ControllerCLCSnippetsRaw string
 	WorkerPoolsListRaw       []map[string]string
+}
+
+func (c *config) SetFlatcarDetails(fc flatcar.Flatcar) {
+	//	c.Flatcar = fc
 }
 
 // init registers aws as a platform

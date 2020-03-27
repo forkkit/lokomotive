@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/kinvolk/lokomotive/pkg/flatcar"
 	"github.com/kinvolk/lokomotive/pkg/terraform"
 )
 
@@ -29,6 +30,7 @@ type Platform interface {
 	Initialize() error
 	GetAssetDir() string
 	GetExpectedNodes() int
+	SetFlatcarDetails(flatcar.Flatcar)
 }
 
 // platforms is a collection where all platforms gets automatically registered

@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/kinvolk/lokomotive/pkg/dns"
+	"github.com/kinvolk/lokomotive/pkg/flatcar"
 	"github.com/kinvolk/lokomotive/pkg/platform"
 	"github.com/kinvolk/lokomotive/pkg/platform/util"
 	"github.com/kinvolk/lokomotive/pkg/terraform"
@@ -61,10 +62,6 @@ type config struct {
 	Facility                 string            `hcl:"facility"`
 	ProjectID                string            `hcl:"project_id"`
 	SSHPubKeys               []string          `hcl:"ssh_pubkeys"`
-	OSArch                   string            `hcl:"os_arch,optional"`
-	OSChannel                string            `hcl:"os_channel,optional"`
-	OSVersion                string            `hcl:"os_version,optional"`
-	IPXEScriptURL            string            `hcl:"ipxe_script_url,optional"`
 	ManagementCIDRs          []string          `hcl:"management_cidrs"`
 	NodePrivateCIDR          string            `hcl:"node_private_cidr"`
 	EnableAggregation        bool              `hcl:"enable_aggregation,optional"`
@@ -77,9 +74,14 @@ type config struct {
 	ReservationIDsDefault    string            `hcl:"reservation_ids_default,optional"`
 	CertsValidityPeriodHours int               `hcl:"certs_validity_period_hours,optional"`
 	WorkerPools              []workerPool      `hcl:"worker_pool,block"`
+	Flatcar                  *PacketFlatcar
 	TagsRaw                  string
 	ManagementCIDRsRaw       string
 	SSHPubKeysRaw            string
+}
+
+func (c *config) SetFlatcarDetails(fc flatcar.Flatcar) {
+	c.Flatcar = fc.(*PacketFlatcar)
 }
 
 // init registers packet as a platform
@@ -101,6 +103,7 @@ func (c *config) LoadConfig(configBody *hcl.Body, evalContext *hcl.EvalContext) 
 func NewConfig() *config {
 	return &config{
 		EnableAggregation: true,
+		Flatcar:           NewPacketFlatcar(),
 	}
 }
 
@@ -141,6 +144,9 @@ func (c *config) Apply(ex *terraform.Executor) error {
 	if err := c.Initialize(); err != nil {
 		return err
 	}
+
+	// Stop Execution for testing.
+	return nil
 
 	return c.terraformSmartApply(ex, dnsProvider)
 }

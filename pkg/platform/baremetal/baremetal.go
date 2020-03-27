@@ -25,11 +25,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
+	"github.com/kinvolk/lokomotive/pkg/flatcar"
 	"github.com/kinvolk/lokomotive/pkg/platform"
 	"github.com/kinvolk/lokomotive/pkg/terraform"
 )
 
 type config struct {
+	Flatcar                *flatcar.Flatcar
 	AssetDir               string   `hcl:"asset_dir"`
 	CachedInstall          string   `hcl:"cached_install,optional"`
 	ClusterName            string   `hcl:"cluster_name"`
@@ -60,6 +62,10 @@ type config struct {
 // init registers bare-metal as a platform
 func init() {
 	platform.Register("bare-metal", NewConfig())
+}
+
+func (c *config) SetFlatcarDetails(fc flatcar.Flatcar) {
+	//c.Flatcar = fc
 }
 
 func (c *config) LoadConfig(configBody *hcl.Body, evalContext *hcl.EvalContext) hcl.Diagnostics {

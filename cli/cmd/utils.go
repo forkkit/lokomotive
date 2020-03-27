@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/kinvolk/lokomotive/pkg/backend"
 	"github.com/kinvolk/lokomotive/pkg/config"
+	"github.com/kinvolk/lokomotive/pkg/flatcar"
 	"github.com/kinvolk/lokomotive/pkg/platform"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -26,6 +27,25 @@ import (
 	"os"
 	"path/filepath"
 )
+
+// getConfiguredFlatcar loads flatcar object from the given configuration file.
+func getConfiguredFlatcar(lokoConfig *config.Config) (flatcar.Flatcar, hcl.Diagnostics) {
+	if lokoConfig.ClusterConfig.Flatcar == nil {
+		// No backend defined and no configuration error
+		return nil, hcl.Diagnostics{}
+	}
+
+	fc, err := flatcar.GetFlatcar(lokoConfig.ClusterConfig.Cluster.Name)
+	if err != nil {
+		diag := &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  err.Error(),
+		}
+		return nil, hcl.Diagnostics{diag}
+	}
+
+	return fc, fc.LoadConfig(&lokoConfig.ClusterConfig.Flatcar.Config, lokoConfig.EvalContext)
+}
 
 // getConfiguredBackend loads a backend from the given configuration file.
 func getConfiguredBackend(lokoConfig *config.Config) (backend.Backend, hcl.Diagnostics) {

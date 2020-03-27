@@ -45,18 +45,18 @@ module "packet-{{.ClusterName}}" {
   controller_type  = "{{ .ControllerType }}"
   {{- end }}
 
-  {{- if .OSArch }}
-  os_arch = "{{ .OSArch }}"
+  {{- if .Flatcar.Arch }}
+  os_arch = "{{ .Flatcar.Arch }}"
   {{- end }}
-  {{- if .OSChannel }}
-  os_channel = "{{ .OSChannel }}"
+  {{- if .Flatcar.Channel }}
+  os_channel = "{{ .Flatcar.Channel }}"
   {{- end }}
-  {{- if .OSVersion }}
-  os_version = "{{ .OSVersion }}"
+  {{- if .Flatcar.Version }}
+  os_version = "{{ .Flatcar.Version }}"
   {{- end }}
 
-  {{- if .IPXEScriptURL }}
-  ipxe_script_url = "{{ .IPXEScriptURL }}"
+  {{- if .Flatcar.IPXEScriptURL }}
+  ipxe_script_url = "{{ .Flatcar.IPXEScriptURL }}"
   {{ end }}
   management_cidrs = {{.ManagementCIDRsRaw}}
   node_private_cidr = "{{.NodePrivateCIDR}}"
@@ -119,7 +119,7 @@ module "worker-{{ $pool.Name }}" {
   type      = "{{ $pool.NodeType }}"
   {{- end }}
 
-  {{- if $.IPXEScriptURL }}
+  {{- if $pool.IPXEScriptURL }}
   ipxe_script_url = "{{ $pool.IPXEScriptURL }}"
   {{- end }}
 

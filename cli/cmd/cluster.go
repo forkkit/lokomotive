@@ -89,6 +89,17 @@ func initialize(ctxLogger *logrus.Entry) (*terraform.Executor, platform.Platform
 		ctxLogger.Fatalf("Failed to validate backend configuration: %v", err)
 	}
 
+	fc, diags := getConfiguredFlatcar(lokoConfig)
+	if diags.HasErrors() {
+		for _, diagnostic := range diags {
+			ctxLogger.Error(diagnostic.Error())
+		}
+
+		ctxLogger.Fatal("Errors found while loading cluster configuration")
+	}
+	// add flatcar details to platform object
+	p.SetFlatcarDetails(fc)
+
 	ex := initializeTerraform(ctxLogger, p, b)
 
 	return ex, p, lokoConfig, assetDir
