@@ -96,6 +96,29 @@ type Executor struct {
 	logger        *log.Entry
 }
 
+func InitializeTerraform(assetDir string, verbose bool) (*Executor, error) {
+	conf := Config{
+		WorkingDir: GetTerraformRootDir(assetDir),
+		Verbose:    verbose,
+	}
+
+	ex, err := NewExecutor(conf)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create Terraform executor: %v", err)
+	}
+
+	//	if err := p.Initialize(); err != nil {
+	//		ctxLogger.Fatalf("Failed to initialize Platform: %v", err)
+	//	}
+
+	if err := ex.Init(); err != nil {
+		return nil, fmt.Errorf("Failed to initialize Terraform: %v", err)
+	}
+
+	return ex, nil
+
+}
+
 // NewExecutor initializes a new Executor.
 func NewExecutor(conf Config) (*Executor, error) {
 	ex := new(Executor)

@@ -18,19 +18,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/kinvolk/lokomotive/pkg/flatcar"
-	"github.com/kinvolk/lokomotive/pkg/terraform"
 )
 
 // Platform describes single environment, where cluster can be installed
 type Platform interface {
 	LoadConfig(*hcl.Body, *hcl.EvalContext) hcl.Diagnostics
-	Apply(*terraform.Executor) error
-	Destroy(*terraform.Executor) error
-	Initialize() error
-	GetAssetDir() string
-	GetExpectedNodes() int
-	SetFlatcarDetails(flatcar.Flatcar)
+	//	GetAssetDir() string
 }
 
 // platforms is a collection where all platforms gets automatically registered

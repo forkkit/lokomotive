@@ -15,7 +15,7 @@
 package packet
 
 var terraformConfigTmpl = `
-module "packet-{{.ClusterName}}" {
+module "packet-{{.Platform.Common.ClusterName}}" {
   source = "../lokomotive-kubernetes/packet/flatcar-linux/kubernetes"
 
   providers = {
@@ -26,23 +26,23 @@ module "packet-{{.ClusterName}}" {
     packet   = packet.default
   }
 
-  dns_zone    = "{{.DNS.Zone}}"
+  dns_zone    = "{{.Platform.DNS.Zone}}"
 
-  ssh_keys  = {{.SSHPubKeysRaw}}
+  ssh_keys  = {{.Platform.Common.SSHPubKeysRaw}}
   asset_dir = "../cluster-assets"
 
-  cluster_name = "{{.ClusterName}}"
-  tags         = {{.TagsRaw}}
-  project_id   = "{{.ProjectID}}"
-  facility     = "{{.Facility}}"
+  cluster_name = "{{.Platform.Common.ClusterName}}"
+  tags         = {{.Platform.Common.TagsRaw}}
+  project_id   = "{{.Platform.ProjectID}}"
+  facility     = "{{.Platform.Facility}}"
 
-  {{- if .ClusterDomainSuffix }}
-  cluster_domain_suffix = "{{.ClusterDomainSuffix}}"
+  {{- if .Network.ClusterDomainSuffix }}
+  cluster_domain_suffix = "{{.Network.ClusterDomainSuffix}}"
   {{- end }}
 
-  controller_count = {{.ControllerCount}}
-  {{- if .ControllerType }}
-  controller_type  = "{{ .ControllerType }}"
+  controller_count = {{.Platform.Common.ControllerCount}}
+  {{- if .Platform.Common.ControllerType }}
+  controller_type  = "{{ .Platform.Common.ControllerType }}"
   {{- end }}
 
   {{- if .Flatcar.Arch }}
@@ -58,41 +58,41 @@ module "packet-{{.ClusterName}}" {
   {{- if .Flatcar.IPXEScriptURL }}
   ipxe_script_url = "{{ .Flatcar.IPXEScriptURL }}"
   {{ end }}
-  management_cidrs = {{.ManagementCIDRsRaw}}
-  node_private_cidr = "{{.NodePrivateCIDR}}"
+  management_cidrs = {{.Network.ManagementCIDRsRaw}}
+  node_private_cidr = "{{.Network.NodePrivateCIDR}}"
 
-  enable_aggregation = {{.EnableAggregation}}
+  enable_aggregation = {{.Platform.Common.EnableAggregation}}
 
-  {{- if .NetworkMTU }}
-  network_mtu = {{.NetworkMTU}}
+  {{- if .Network.NetworkMTU }}
+  network_mtu = {{.Network.NetworkMTU}}
   {{- end }}
-  enable_reporting = {{.EnableReporting}}
+  enable_reporting = {{.Network.EnableReporting}}
 
-  {{- if .PodCIDR }}
-  pod_cidr = "{{.PodCIDR}}"
-  {{- end }}
-
-  {{- if .ServiceCIDR }}
-  service_cidr = "{{.ServiceCIDR}}"
+  {{- if .Network.PodCIDR }}
+  pod_cidr = "{{.Network.PodCIDR}}"
   {{- end }}
 
-  {{- if .ReservationIDs }}
+  {{- if .Network.ServiceCIDR }}
+  service_cidr = "{{.Network.ServiceCIDR}}"
+  {{- end }}
+
+  {{- if .Platform.ReservationIDs }}
     reservation_ids = {
-      {{- range $key, $value := .ReservationIDs }}
+      {{- range $key, $value := .Platform.ReservationIDs }}
       {{ $key }} = "{{ $value }}"
       {{- end }}
     }
   {{- end }}
 
-  {{- if .ReservationIDsDefault }}
-  reservation_ids_default = "{{.ReservationIDsDefault}}"
+  {{- if .Platform.ReservationIDsDefault }}
+  reservation_ids_default = "{{.Platform.ReservationIDsDefault}}"
   {{- end }}
-  {{- if .CertsValidityPeriodHours }}
-  certs_validity_period_hours = {{.CertsValidityPeriodHours}}
+  {{- if .Platform.Common.CertsValidityPeriodHours }}
+  certs_validity_period_hours = {{.Platform.Common.CertsValidityPeriodHours}}
   {{- end }}
 }
 
-{{ range $index, $pool := .WorkerPools }}
+{{ range $index, $pool := .Platform.WorkerPools }}
 module "worker-{{ $pool.Name }}" {
   source = "../lokomotive-kubernetes/packet/flatcar-linux/kubernetes/workers"
 
@@ -103,14 +103,14 @@ module "worker-{{ $pool.Name }}" {
     packet   = packet.default
   }
 
-  ssh_keys  = {{$.SSHPubKeysRaw}}
+  ssh_keys  = {{$.Platform.Common.SSHPubKeysRaw}}
 
-  cluster_name = "{{$.ClusterName}}"
-  tags         = {{$.TagsRaw}}
-  project_id   = "{{$.ProjectID}}"
-  facility     = "{{$.Facility}}"
-  {{- if $.ClusterDomainSuffix }}
-  cluster_domain_suffix = "{{$.ClusterDomainSuffix}}"
+  cluster_name = "{{$.Platform.Common.ClusterName}}"
+  tags         = {{$.Platform.Common.TagsRaw}}
+  project_id   = "{{$.Platform.ProjectID}}"
+  facility     = "{{$.Platform.Facility}}"
+  {{- if $.Network.ClusterDomainSuffix }}
+  cluster_domain_suffix = "{{$.Network.ClusterDomainSuffix}}"
   {{- end }}
 
   pool_name    = "{{ $pool.Name }}"
@@ -133,7 +133,7 @@ module "worker-{{ $pool.Name }}" {
   os_version = "{{ $pool.OSVersion }}"
   {{- end }}
 
-  kubeconfig = module.packet-{{ $.ClusterName }}.kubeconfig
+  kubeconfig = module.packet-{{ $.Platform.Common.ClusterName }}.kubeconfig
 
   {{- if $pool.Labels }}
   labels = "{{ $pool.Labels }}"
@@ -141,8 +141,8 @@ module "worker-{{ $pool.Name }}" {
   {{- if $pool.Taints }}
   taints = "{{ $pool.Taints }}"
   {{- end }}
-  {{- if $.ServiceCIDR }}
-  service_cidr = "{{$.ServiceCIDR}}"
+  {{- if $.Network.ServiceCIDR }}
+  service_cidr = "{{$.Network.ServiceCIDR}}"
   {{- end }}
 
   {{- if $pool.SetupRaid }}
@@ -162,26 +162,26 @@ module "worker-{{ $pool.Name }}" {
   disable_bgp = true
   {{- end}}
 
-  {{- if $.ReservationIDs }}
+  {{- if $.Platform.ReservationIDs }}
     reservation_ids = {
-      {{- range $key, $value := $.ReservationIDs }}
+      {{- range $key, $value := $.Platform.ReservationIDs }}
       {{ $key }} = "{{ $value }}"
       {{- end }}
     }
   {{- end }}
-  {{- if $.ReservationIDsDefault }}
-  reservation_ids_default = "{{$.ReservationIDsDefault}}"
+  {{- if $.Platform.ReservationIDsDefault }}
+  reservation_ids_default = "{{$.Platform.ReservationIDsDefault}}"
   {{- end }}
 }
 {{ end }}
 
-{{- if .DNS.Provider.Manual }}
+{{- if .Platform.DNS.Provider.Manual }}
 output "dns_entries" {
-  value = module.packet-{{.ClusterName}}.dns_entries
+  value = module.packet-{{.Platform.Common.ClusterName}}.dns_entries
 }
 {{- end }}
 
-{{- if .DNS.Provider.Route53 }}
+{{- if .Platform.DNS.Provider.Route53 }}
 module "dns" {
   source = "../lokomotive-kubernetes/dns/route53"
 
@@ -189,8 +189,8 @@ module "dns" {
     aws = aws.default
   }
 
-  entries = module.packet-{{.ClusterName}}.dns_entries
-  aws_zone_id = "{{.DNS.Provider.Route53.ZoneID}}"
+  entries = module.packet-{{.Platform.Common.ClusterName}}.dns_entries
+  aws_zone_id = "{{.Platform.DNS.Provider.Route53.ZoneID}}"
 }
 
 provider "aws" {
@@ -200,8 +200,8 @@ provider "aws" {
   # the AWS Terraform provider needs it and the documentation suggests to use
   # "us-east-1": https://docs.aws.amazon.com/general/latest/gr/r53.html.
   region = "us-east-1"
-  {{- if .DNS.Provider.Route53.AWSCredsPath }}
-  shared_credentials_file = "{{.DNS.Provider.Route53.AWSCredsPath}}"
+  {{- if .Platform.DNS.Provider.Route53.AWSCredsPath }}
+  shared_credentials_file = "{{.Platform.DNS.Provider.Route53.AWSCredsPath}}"
   {{- end }}
 }
 {{- end }}
@@ -234,8 +234,8 @@ provider "packet" {
   version = "~> 2.7.3"
   alias = "default"
 
-  {{- if .AuthToken }}
-  auth_token = "{{.AuthToken}}"
+  {{- if .Platform.AuthToken }}
+  auth_token = "{{.Platform.AuthToken}}"
   {{- end }}
 }
 
@@ -248,25 +248,25 @@ output "initialized" {
 
 # values.yaml content for all deployed charts.
 output "pod-checkpointer_values" {
-  value = module.packet-{{.ClusterName}}.pod-checkpointer_values
+  value = module.packet-{{.Platform.Common.ClusterName}}.pod-checkpointer_values
 }
 
 output "kube-apiserver_values" {
-  value     = module.packet-{{.ClusterName}}.kube-apiserver_values
+  value     = module.packet-{{.Platform.Common.ClusterName}}.kube-apiserver_values
   sensitive = true
 }
 
 output "kubernetes_values" {
-  value     = module.packet-{{.ClusterName}}.kubernetes_values
+  value     = module.packet-{{.Platform.Common.ClusterName}}.kubernetes_values
   sensitive = true
 }
 
 output "kubelet_values" {
-  value     = module.packet-{{.ClusterName}}.kubelet_values
+  value     = module.packet-{{.Platform.Common.ClusterName}}.kubelet_values
   sensitive = true
 }
 
 output "calico_values" {
-  value = module.packet-{{.ClusterName}}.calico_values
+  value = module.packet-{{.Platform.Common.ClusterName}}.calico_values
 }
 `

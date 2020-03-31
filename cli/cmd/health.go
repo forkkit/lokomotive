@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/kinvolk/lokomotive/pkg/cluster"
 	"github.com/kinvolk/lokomotive/pkg/k8sutil"
 	"github.com/kinvolk/lokomotive/pkg/lokomotive"
 )
@@ -37,6 +38,18 @@ func init() {
 	RootCmd.AddCommand(healthCmd)
 }
 
+func runHealth2(cmd *cobra.Command, args []string) {
+
+	contextLogger := log.WithFields(log.Fields{
+		"command": "lokoctl health",
+		"args":    args,
+	})
+
+	loko := initialize2(contextLogger)
+
+	kubeconfig := cluster.GetKubeconfig(loko.GetAssetDir())
+	loko.Health()
+}
 func runHealth(cmd *cobra.Command, args []string) {
 	contextLogger := log.WithFields(log.Fields{
 		"command": "lokoctl health",

@@ -20,6 +20,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	// Register cluster platforms by adding an anonymous import.
+	_ "github.com/kinvolk/lokomotive/pkg/cluster/packet"
+
 	// Register platforms by adding an anonymous import.
 	_ "github.com/kinvolk/lokomotive/pkg/platform/aws"
 	_ "github.com/kinvolk/lokomotive/pkg/platform/baremetal"

@@ -21,9 +21,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/kinvolk/lokomotive/pkg/cluster"
 	"github.com/kinvolk/lokomotive/pkg/install"
 	"github.com/kinvolk/lokomotive/pkg/k8sutil"
 	"github.com/kinvolk/lokomotive/pkg/lokomotive"
+	"github.com/kinvolk/lokomotive/pkg/terraform"
 )
 
 var (
@@ -35,7 +37,7 @@ var (
 var clusterApplyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Apply configuration changes to a Lokomotive cluster with components",
-	Run:   runClusterApply,
+	Run:   runClusterApply2,
 }
 
 func init() {
@@ -47,20 +49,31 @@ func init() {
 	pf.BoolVarP(&upgradeKubelets, "upgrade-kubelets", "", false, "Experimentally upgrade self-hosted kubelets")
 }
 
-//nolint:funlen
-func runClusterApply(cmd *cobra.Command, args []string) {
+func runClusterApply2(cmd *cobra.Command, args []string) {
+
 	ctxLogger := log.WithFields(log.Fields{
 		"command": "lokoctl cluster apply",
 		"args":    args,
 	})
 
-	ex, p, lokoConfig, assetDir := initialize(ctxLogger)
+	loko := initialize2(ctxLogger)
 
-	exists := clusterExists(ctxLogger, ex)
+	// initialize platform
+	loko.Initialize()
+	ex, err := terraform.InitializeTerraform(loko.GetAssetDir(), verbose)
+	if err != nil {
+		ctxLogger.Fatalf("Failed to initialize terraform executor: %v", err)
+	}
+
+	exists, err := cluster.IsExists(ex)
+	if err != nil {
+		ctxLogger.Fatalf("Failed to check if the cluster exists: %v", err)
+	}
+
 	if exists && !confirm {
 		// TODO: We could plan to a file and use it when installing.
 		if err := ex.Plan(); err != nil {
-			ctxLogger.Fatalf("Failed to reconsile cluster state: %v", err)
+			ctxLogger.Fatalf("Failed to reconcile cluster state: %v", err)
 		}
 
 		if !askForConfirmation("Do you want to proceed with cluster apply?") {
@@ -70,55 +83,47 @@ func runClusterApply(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if err := p.Apply(ex); err != nil {
-		ctxLogger.Fatalf("error applying cluster: %v", err)
+	if err = loko.Apply(ex); err != nil {
+		ctxLogger.Fatalf("Failed to initialize cluster: %v", err)
 	}
 
-	fmt.Printf("\nYour configurations are stored in %s\n", assetDir)
-
-	kubeconfigPath := assetsKubeconfig(assetDir)
-	if err := verifyCluster(kubeconfigPath, p.GetExpectedNodes()); err != nil {
-		ctxLogger.Fatalf("Verify cluster: %v", err)
+	if err = loko.Verify(); err != nil {
+		ctxLogger.Fatalf("Unable to verify cluster: %v", err)
 	}
+	fmt.Printf("\nYour configurations are stored in %s\n", loko.GetAssetDir())
 
 	// Do controlplane upgrades only if cluster already exists.
 	if exists {
+		loko.UpdateControlPlane(ex, upgradeKubelets)
 		fmt.Printf("\nEnsuring that cluster controlplane is up to date.\n")
-
-		cu := controlplaneUpdater{
-			kubeconfigPath: kubeconfigPath,
-			assetDir:       assetDir,
-			ctxLogger:      *ctxLogger,
-			ex:             *ex,
-		}
-
-		releases := []string{"pod-checkpointer", "kube-apiserver", "kubernetes", "calico"}
-
-		if upgradeKubelets {
-			releases = append(releases, "kubelet")
-		}
-
-		for _, c := range releases {
-			cu.upgradeComponent(c)
-		}
 	}
 
 	if skipComponents {
 		return
 	}
 
-	componentsToApply := []string{}
-	for _, component := range lokoConfig.ClusterConfig.Components {
-		componentsToApply = append(componentsToApply, component.Name)
-	}
+	//	componentsToApply := []string{}
+	//	for _,name := loko.
+	//	if err := loko.ApplyComponents(); err != nil {
+	//		ctxLogger.Fatalf("Unable to install components: %v", err)
+	//	}
+}
 
-	ctxLogger.Println("Applying component configuration")
-
-	if len(componentsToApply) > 0 {
-		if err := applyComponents(lokoConfig, kubeconfigPath, componentsToApply...); err != nil {
-			ctxLogger.Fatalf("Applying component configuration failed: %v", err)
-		}
-	}
+//nolint:funlen
+func runClusterApply(cmd *cobra.Command, args []string) {
+	//
+	//	componentsToApply := []string{}
+	//	for _, component := range lokoConfig.ClusterConfig.Components {
+	//		componentsToApply = append(componentsToApply, component.Name)
+	//	}
+	//
+	//	ctxLogger.Println("Applying component configuration")
+	//
+	//	if len(componentsToApply) > 0 {
+	//		if err := applyComponents(lokoConfig, kubeconfigPath, componentsToApply...); err != nil {
+	//			ctxLogger.Fatalf("Applying component configuration failed: %v", err)
+	//		}
+	//	}
 }
 
 func verifyCluster(kubeconfigPath string, expectedNodes int) error {

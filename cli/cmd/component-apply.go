@@ -20,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/kinvolk/lokomotive/pkg/cluster"
 	"github.com/kinvolk/lokomotive/pkg/components"
 	"github.com/kinvolk/lokomotive/pkg/components/util"
 	"github.com/kinvolk/lokomotive/pkg/config"
@@ -43,27 +44,25 @@ func runApply(cmd *cobra.Command, args []string) {
 		"args":    args,
 	})
 
-	lokoConfig, diags := getLokoConfig()
-	if len(diags) > 0 {
-		contextLogger.Fatal(diags)
-	}
+	ctxLogger := log.WithFields(log.Fields{
+		"command": "lokoctl cluster apply",
+		"args":    args,
+	})
+
+	loko := initialize2(ctxLogger)
 
 	var componentsToApply []string
-	if len(args) > 0 {
-		componentsToApply = append(componentsToApply, args...)
-	} else {
-		for _, component := range lokoConfig.ClusterConfig.Components {
-			componentsToApply = append(componentsToApply, component.Name)
+	if len(args) == 0 {
+		if err := loko.ApplyComponents(); err != nil {
+			contextLogger.Fatalf("Unable to install configured components: %v", err)
 		}
-	}
-
-	kubeconfig, err := getKubeconfig()
-	if err != nil {
-		contextLogger.Fatalf("Error in finding kubeconfig file: %s", err)
-	}
-
-	if err := applyComponents(lokoConfig, kubeconfig, componentsToApply...); err != nil {
-		contextLogger.Fatal(err)
+	} else {
+		componentsToApply = append(componentsToApply, args...)
+		components := cluster.ComponentsToApply(componentsToApply, loko.GetComponents())
+		loko.SetComponents(components)
+		if err := loko.ApplyComponents(); err != nil {
+			contextLogger.Fatalf("Unable to install configured components: %v", err)
+		}
 	}
 }
 

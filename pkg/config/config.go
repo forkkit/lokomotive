@@ -53,10 +53,15 @@ type flatcar struct {
 	Config hcl.Body `hcl:",remain"`
 }
 
+type network struct {
+	Config hcl.Body `hcl:",remain"`
+}
+
 type ClusterConfig struct {
 	Cluster    *cluster    `hcl:"cluster,block"`
 	Backend    *backend    `hcl:"backend,block"`
 	Flatcar    *flatcar    `hcl:"flatcar,block"`
+	Network    *network    `hcl:"network,block"`
 	Components []component `hcl:"component,block"`
 	Variables  []variable  `hcl:"variable,block"`
 }
