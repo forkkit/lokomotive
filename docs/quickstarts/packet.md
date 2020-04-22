@@ -17,10 +17,13 @@
 
 ## Introduction
 
-This quickstart guide walks through the steps needed to create a Lokomotive cluster on Packet with
-Flatcar Container Linux using Route53 as the DNS provider.
+This guide shows how to create a Lokomotive cluster on [Packet](https://www.packet.com/). By the
+end of this guide, you'll have a basic Lokomotive cluster running on Packet.
 
-By the end of this guide, you'll have a production-ready Kubernetes cluster running on Packet.
+Lokomotive runs on top of [Flatcar Container Linux](https://www.flatcar-linux.org/). This guide
+uses the `stable` channel.
+
+The guide uses [Amazon Route 53](https://aws.amazon.com/route53/) as a DNS provider.
 
 ## Requirements
 
