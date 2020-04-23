@@ -27,17 +27,19 @@ The guide uses [Amazon Route 53](https://aws.amazon.com/route53/) as a DNS provi
 
 ## Requirements
 
-* Basic understanding of Kubernetes concepts.
-* Packet account, Project ID and auth token (sometimes also referred to as [User Level API
-  key](https://www.packet.com/developers/docs/API/getting-started/)).
-* AWS account and IAM credentials (optional for Route53 DNS configuration).
-* AWS Route53 DNS Zone (registered Domain Name or delegated subdomain).
-* Terraform v0.12.x and [terraform-provider-ct](https://github.com/poseidon/terraform-provider-ct) v0.5.0
-  installed locally.
-* Local BGP enabled. More information on how to enable Local BGP for the Packet Project is found in
-  the [Packet support document](https://support.packet.com/kb/articles/bgp).
-* An SSH key pair for management access.
-* `kubectl` installed locally to access the Kubernetes cluster.
+* A Packet account with
+  [local BGP](https://www.packet.com/developers/docs/network/advanced/local-and-global-bgp/)
+  enabled.
+* A Packet project ID.
+* A Packet API key with access to the relevant project.
+* An AWS account.
+* An AWS
+  [access key ID and secret](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html).
+* An AWS Route 53 zone (can be a subdomain).
+* An SSH key pair for accessing the cluster nodes.
+* Terraform `v0.12.x` installed.
+* [terraform-provider-ct](https://github.com/poseidon/terraform-provider-ct) `v0.5.0` installed.
+* `kubectl` installed.
 
 ## Steps
 
